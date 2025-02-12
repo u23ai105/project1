@@ -49,7 +49,19 @@ export async function POST(request) {
     const userToReturn = { ...newUser.toJSON(), token };
     delete userToReturn.password;
 
-    return NextResponse.json(userToReturn, { status: 201 });
+    const response = NextResponse.json(userToReturn, { status: 201 });
+
+    response.cookies.set("token", token, {
+      httpOnly: false, // Change to true if you don’t need access from frontend
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 60 * 60 * 24 * 15,
+      path: "/",
+    });
+
+    console.log(response.cookies.get("token"));
+
+    return response;
   } catch (error) {
     console.error('Registration error:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

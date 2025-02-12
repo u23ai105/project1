@@ -40,15 +40,22 @@ export async function POST(request) {
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "15d" });
 
-    const cookieStore = cookies();
-    cookieStore.set("token", token, {
-      httpOnly: true,
+    const response = NextResponse.json(
+      { message: "Login successful", token },
+      { status: 200 }
+    );
+
+    response.cookies.set("token", token, {
+      httpOnly: false, // Change to true if you don’t need access from frontend
       secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
       maxAge: 60 * 60 * 24 * 15,
       path: "/",
     });
 
-    return NextResponse.json({ message: "Login successful", token }, { status: 200 });
+    console.log(response.cookies.get("token"));
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

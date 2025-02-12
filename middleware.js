@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'thisKeyIsSupposedToBeSecret';
 
 export async function middleware(request) {
   // Paths that don't require authentication
-  const publicPaths = ['/login', '/signup', '/'];
+  const publicPaths = ['/login', '/signup', '/','/otp','/forgot-password','/reset-password','/mobile'];
   const path = request.nextUrl.pathname;
 
   console.log(`Request path: ${path}`); // Log the request path

@@ -1,0 +1,14 @@
+// {
+//   "type": "service_account",
+//   "project_id": "helper-buddy-333df",
+//   "private_key_id": "58d880926c5d633a7221af6cfdf810608c19bf93",
+//   "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC2Rbo5TSATL3yA\nJ7sLQQLvC0yvEpSSnCiZTk5p0P0AHnnWeXKdmE46cWbyGnJpsK1emgVjtWUiXHip\npEDoOBEAV2vNJXa8UfU5Ko1vzLaICx3gUDFSfbLi6nS/baQhUQo2wCQQdVFqK2O/\nWNyu6JW7AhUZnsO/fGfnKHMngvCLqcwSYbkUG/K6H+ZjnzbgPHTMJsUQCmwF/+eP\n+nSJtg61fTYB6oYp/X24eZYpvcNc5LB1NoOFTLTpSFQ2Ogyu8lgbShxnQue8FNTR\nvaXkSkiHOSJyXQ+rfb18uR6hPkjc2WEWNTOsK1hk6ZZAlFJqOdeqm3JcTWe9+Iaf\n/Ejax9E/AgMBAAECggEAOeek5ZdO3Ul0r/HvRf/9QpvAXM32TS026J0r5An0lhkY\nc75ZXx+HmqF0Ju2n81OhgDBGDgsOegAOhTYdOKi3Hfin0qBYPDN9SA/wptfOFSIS\n97QCN0afkd8R/86BGeR47jPUQTZECwqFwcAlO5vAFYzvzxfU7/xBtfnvu1mpuXRK\ng6/O8hEw0dzIM9xQCLcbPZyOLfS71S1Z8PQ7e3uhaF+6tB3RQ1M3/buMMJXEFlOP\n5vt3mgD1FkJjaWcdffHEdWS4qvDTh2+jU0CC2aFu2AatJRTF9mywn/5UdXKj1hdg\nttXu3yMa5dvztOpuTODwzP2R+P347GNUEbXXItP6IQKBgQDe0PtCTlxmiUgiXEyP\nkqdHgjGL+FgRJxv0ndwJnWmAMWEkIqaof0MUSlFQ712p4qX27PTaybzZvbq+f59R\nxGAJ37zCxyDqATMahhrXQ4SCjgqfRcNS+dYCmI/DzHu3YMHPFnGwlHkj/qNExB4I\npxLQChxUz7lpbEfXK+dtBeqMYwKBgQDRavsc/VLqPcImF7HTKX4cQzjm7N8KbqOg\nu1nTcQHJcBP3RAkftM4LYTpMEBpMxlYPOk70wJJgLACOJECjvOOgIiiyAyuAmqCs\nV0th22VRllp30NmKMUDywVo81PfE31qfQFu2xW/hXa6E0rQfFF0caGXyPHV5415Y\nuu5vnqA4dQKBgCaizi69L8CH5X4vywbKQz9fEABZW8v9oBdWmCUCqpyT82g0qfll\nt9f42wjRuMgQiP68L+kQOjL3dz45GwMurgiIR07vAIITGy1qO5VAG+YXgzgC/M+S\nis2Abs1g08MEgBbMqYIY/LiFGwJ9j0eo0NZKKod6TYg+QmbJMiPxdq5JAoGASkvt\nKTzKtOYSQld3tFXtMvO6dVsmSlo0XSr61GQsYR4NR1Vw8zm/PBRTjXbNDd3z3FUw\ne+7yP4J88/DyqeSy0TYtP/KV9Xtmc55I1T/0Mzznfciv1TJiO33TmO9ptAQV75fy\nseZcKhWFfAQQ+VHNMu3q9UTz3LmI2GwBecJKT50CgYBnk9WghO1oeiedGxO2Zw67\nJ8WABsSbtK6LRtKiQI8IrutPqJKUCDaQZ9AQeuuIAHmUyteBu/WECttAuGYevTXJ\nBGXQr7rwD4DSDWjBVsXqqov5qJ9dMtGOCKcaq8hBiL8qgZ/VTFRnmA6AWCUvtek1\nYPD5YEW7/1RgQer79W2AuQ==\n-----END PRIVATE KEY-----\n",
+//   "client_email": "firebase-adminsdk-fbsvc@helper-buddy-333df.iam.gserviceaccount.com",
+//   "client_id": "113741748049188750418",
+//   "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+//   "token_uri": "https://oauth2.googleapis.com/token",
+//   "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+//   "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40helper-buddy-333df.iam.gserviceaccount.com",
+//   "universe_domain": "googleapis.com"
+// }
+// // 

@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { cookies } from "next/headers";
 import { connectDB } from "../../../../lib/db"; // Adjust based on folder depth
 import User from "../../../../models/User";
 
 export const runtime = "nodejs";
 
-await connectDB();
-
 const JWT_SECRET = process.env.JWT_SECRET || "thisKeyIsSupposedToBeSecret";
 
 export async function POST(request) {
+  await connectDB();
   try {
     const body = await request.json();
     console.log("Request body:", body);
@@ -21,14 +19,21 @@ export async function POST(request) {
     console.log("Email:", email);
     console.log("Password:", password);
 
-    // Find user by email or username
-    const user = await User.findOne({ $or: [{ email: email }, { username: email }] });
+    // Find user by email or username and check if they are verified
+    const user = await User.findOne({
+      $or: [{ email: email }, { username: email }],
+    });
     if (!user) {
-      console.log("User not found");
-      return NextResponse.json({ error: "Invalid credentials" }, { status: 403 });
+      console.log("User not found or not verified");
+      return NextResponse.json({ error: "Invalid credentials or user not verified" }, { status: 403 });
     }
 
     console.log("User found:", user);
+
+    if (!user.isVerified) {
+      console.log("User is not verified");
+      return NextResponse.json({ error: "User is not verified" }, { status: 403 });
+    }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
@@ -39,14 +44,6 @@ export async function POST(request) {
     console.log("Password is valid");
 
     const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: "15d" });
-
-    // const cookieStore = cookies();
-    // cookieStore.set("token", token, {
-    //   httpOnly: true,
-    //   secure: process.env.NODE_ENV === "production",
-    //   maxAge: 60 * 60 * 24 * 15,
-    //   path: "/",
-    // });
 
     const response = NextResponse.json(
       { message: "Login successful", token },

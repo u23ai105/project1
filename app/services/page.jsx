@@ -1,126 +1,106 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { Search } from 'lucide-react'
-import DatePicker from 'react-datepicker'
-import "react-datepicker/dist/react-datepicker.css"
+import { useState, useEffect } from 'react';
+import { Search } from 'lucide-react';
+import DatePicker from 'react-datepicker';
+import "react-datepicker/dist/react-datepicker.css";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
+import { useCookies } from 'react-cookie';
 
 const categories = [
   "All",
-  "Home Services",
-  "Personal Assistant",
-  "Professional Services",
-  "Tech Support",
-  "Health & Wellness"
-]
-
-const initialServices = [
-  {
-    id: 1,
-    title: "Personal Assistant",
-    category: "Personal Assistant",
-    image: "https://images.unsplash.com/photo-1552960562-daf630e9278b?auto=format&fit=crop&q=80&w=600",
-    description: "Your dedicated assistant for daily tasks and organization",
-    price: 25,
-    bookings: 150
-  },
-  {
-    id: 2,
-    title: "Home Cleaning",
-    category: "Home Services",
-    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&q=80&w=600",
-    description: "Professional home cleaning services",
-    price: 35,
-    bookings: 200
-  },
-  {
-    id: 3,
-    title: "Tech Support",
-    category: "Tech Support",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600",
-    description: "Expert technical support for all your devices",
-    price: 40,
-    bookings: 120
-  },
-  {
-    id: 4,
-    title: "Fitness Training",
-    category: "Health & Wellness",
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&q=80&w=600",
-    description: "Personalized fitness training sessions",
-    price: 45,
-    bookings: 180
-  },
-  {
-    id: 5,
-    title: "Business Consulting",
-    category: "Professional Services",
-    image: "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?auto=format&fit=crop&q=80&w=600",
-    description: "Expert business advice and strategy",
-    price: 60,
-    bookings: 90
-  },
-  {
-    id: 6,
-    title: "Ac installation",
-    category: "Professional Services",
-    image: "https://www.vecteezy.com/free-photos/ac-installation",
-    description: "Expert in ac installation",
-    price: 30,
-    bookings: 90
-  },
-  {
-    id: 7,
-    title: "Plumber",
-    category: "Home Services",
-    image: "https://www.vecteezy.com/free-photos/ac-installation",
-    description: "Expert in plumbing",
-    price: 20,
-    bookings: 80
-  }
-].sort((a, b) => b.bookings - a.bookings)
+  "Appliance Installation & Setup",
+  "Bathroom & Kitchen Services",
+  "Furniture & Home Cleaning",
+  "Home Installation & Repairs",
+  "Appliance Uninstallation"
+];
 
 export default function ServicesPage() {
-  const [selectedCategory, setSelectedCategory] = useState("All")
-  const [searchQuery, setSearchQuery] = useState("")
-  const [selectedService, setSelectedService] = useState(null)
-  const [bookingDate, setBookingDate] = useState(null)
-  const [bookingTime, setBookingTime] = useState("")
-  const [cart, setCart] = useState([])
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedService, setSelectedService] = useState(null);
+  const [bookingDate, setBookingDate] = useState(null);
+  const [bookingTime, setBookingTime] = useState("");
+  const [quantity, setQuantity] = useState(1);
+  const [services, setServices] = useState([]);
+  const [cookies] = useCookies(['token']);
 
-  const filteredServices = initialServices
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const encodedCategory = encodeURIComponent(selectedCategory);
+        const response = await fetch(`/api/services?category=${encodedCategory}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch services');
+        }
+        const data = await response.json();
+        setServices(data);
+      } catch (error) {
+        console.error('Failed to fetch services:', error);
+      }
+    };
+
+    fetchServices();
+  }, [selectedCategory]);
+
+  const filteredServices = services
     .filter(service => 
-      (selectedCategory === "All" || service.category === selectedCategory) &&
-      service.title.toLowerCase().includes(searchQuery.toLowerCase())
+      service && service.items && service.items.length > 0 &&
+      service.items.some(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()))
     )
+    .flatMap(service => service.items);
 
   const timeSlots = [
     "09:00 AM", "10:00 AM", "11:00 AM", "12:00 PM",
     "01:00 PM", "02:00 PM", "03:00 PM", "04:00 PM",
     "05:00 PM"
-  ]
+  ];
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (selectedService) {
-      const updatedCart = [...cart, {
-        ...selectedService,
-        bookingDate,
-        bookingTime
-      }];
-      setCart(updatedCart);
-      localStorage.setItem('cart', JSON.stringify(updatedCart));
-      setSelectedService(null);
-      setBookingDate(null);
-      setBookingTime("");
+      try {
+        const cartItem = {
+          serviceId: selectedService._id,
+          title: selectedService.title,
+          actualprice: selectedService.actualprice,
+          discountedprice: selectedService.discountedprice,
+          image: selectedService.image,
+          bookingDate,
+          bookingTime,
+          quantity
+        };
+  
+        console.log('Sending to cart:', cartItem);
+  
+        const response = await fetch('/api/cart', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${cookies.token}`
+          },
+          body: JSON.stringify(cartItem)
+        });
+  
+        if (!response.ok) throw new Error('Failed to add service to cart');
+        const data = await response.json();
+        console.log('Service added to cart:', data);
+  
+        setSelectedService(null);
+        setBookingDate(null);
+        setBookingTime("");
+        setQuantity(1);
+      } catch (error) {
+        console.error('Error adding service to cart:', error);
+      }
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-        <Navbar />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28">
+    <div className="min-h-screen bg-black">
+      <Navbar />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Search Bar */}
         <div className="max-w-2xl mx-auto mb-8">
           <div className="relative">
@@ -137,16 +117,16 @@ export default function ServicesPage() {
 
         <div className="flex flex-col md:flex-row gap-8">
           {/* Categories */}
-          <div className="w-full md:w-64 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900">Categories</h3>
+          <div className="w-full md:w-64 space-y-4 ">
+            <h3 className="text-lg font-semibold text-gray-300">Categories</h3>
             {categories.map(category => (
               <button
                 key={category}
                 onClick={() => setSelectedCategory(category)}
                 className={`w-full text-left px-4 py-2 rounded-lg ${
                   selectedCategory === category
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 hover:bg-gray-50'
+                    ? 'bg-gray-500 text-white'
+                    : 'bg-slate-400 text-black font-medium hover:bg-gray-50'
                 }`}
               >
                 {category}
@@ -158,18 +138,24 @@ export default function ServicesPage() {
           <div className="flex-1">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredServices.map(service => (
-                <div key={service.id} className="bg-white rounded-xl overflow-hidden shadow-lg">
+                <div key={service._id} className="bg-neutral-900 rounded-xl overflow-hidden shadow-lg">
                   <img
                     src={service.image}
                     alt={service.title}
                     className="w-full h-48 object-cover"
                   />
                   <div className="p-6">
-                    <h3 className="text-xl font-semibold mb-2">{service.title}</h3>
-                    <p className="text-gray-600 mb-4">{service.description}</p>
+                    <h3 className="text-xl font-semibold mb-2 text-slate-100">{service.title}</h3>
+                    <p className="text-gray-300 mb-4">{service.description}</p>
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-2xl font-bold text-blue-600">${service.price}/hr</span>
-                      <span className="text-sm text-gray-500">{service.bookings} bookings</span>
+                      <div className="flex flex-row items-center">
+                        <span className="text-xl font-semibold line-through text-gray-200">
+                          {service.actualprice} ₹
+                        </span>
+                        <span className="text-xl font-semibold text-white ml-2">
+                          {service.discountedprice} ₹
+                        </span>
+                      </div>
                     </div>
                     <button
                       onClick={() => setSelectedService(service)}
@@ -226,23 +212,43 @@ export default function ServicesPage() {
                   ))}
                 </select>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xl font-semibold">
-                  Total: ${selectedService.price}
-                </span>
-                <button
-                  onClick={handleAddToCart}
-                  disabled={!bookingDate || !bookingTime}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
-                >
-                  Add to Cart
-                </button>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Quantity
+                </label>
+                <input
+                  type="number"
+                  value={quantity}
+                  onChange={(e) => setQuantity(parseInt(e.target.value))}
+                  min="1"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
+              <div className="flex justify-between items-center">
+                <div>
+                  <span className="text-xl font-semibold line-through text-gray-500">
+                    {selectedService.actualprice} INR
+                  </span>
+                  <span className="text-xl font-semibold text-blue-600 ml-2">
+                    {selectedService.discountedprice} INR
+                  </span>
+                </div>
+                <span className="text-xl font-semibold">
+                  Total: {selectedService.discountedprice * quantity} INR
+                </span>
+              </div>
+              <button
+                onClick={handleAddToCart}
+                disabled={!bookingDate || !bookingTime || quantity < 1}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-gray-400"
+              >
+                Add to Cart
+              </button>
             </div>
           </div>
         </div>
       )}
       <Footer />
     </div>
-  )
+  );
 }

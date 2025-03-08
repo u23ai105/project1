@@ -30,6 +30,11 @@ export async function POST(request) {
 
     console.log("User found:", user);
 
+    if (!user.isVerified) {
+      console.log("User is not verified");
+      return NextResponse.json({ error: "User is not verified" }, { status: 403 });
+    }
+
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       console.log("Invalid password");

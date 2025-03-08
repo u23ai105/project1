@@ -1,4 +1,8 @@
 import Link from 'next/link'
+import Instagram from '../../public/icons/instagram.svg';
+import Facebook from '../../public/icons/facebook.svg';
+import Twitter from '../../public/icons/twitter.svg';
+import LinkedIn from '../../public/icons/linkedin.svg';
 
 export default function Footer() {
   return (
@@ -8,6 +12,23 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">Helper-Buddy</h3>
             <p className="text-gray-400">Your trusted partner for everyday assistance</p>
+            <div className='w-full bg-black flex flex-col pt-3'>
+          <h2 className='text-3xl font-bold mb-5 text-white'>Follow Us</h2>
+          <div className='flex space-x-4'>
+            <a href="https://www.facebook.com/people/Helper-Buddy/61566410515044/" target="_blank" rel="noopener noreferrer" className='text-blue-600 hover:text-blue-800'>
+            <Facebook width={4} height={4} className="w-7 h-7" />
+            </a>
+            <a href="https://x.com/helperbuddyin" target="_blank" rel="noopener noreferrer" className='text-blue-400 hover:text-blue-600'>
+            <Twitter width={4} height={4} className="w-7 h-7" />
+            </a>
+            <a href="https://www.instagram.com/helperbuddy.in/#" target="_blank" rel="noopener noreferrer" className='text-pink-600 hover:text-pink-800 '>
+              <Instagram width={4} height={4} className="w-7 h-7" />
+            </a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className='text-blue-700 hover:text-blue-900'>
+            <LinkedIn width={4} height={4} className="w-7 h-7" />
+            </a>
+          </div>
+        </div>
           </div>
           <div>
             <h4 className="text-lg font-semibold mb-4">Quick Links</h4>

@@ -1,69 +1,97 @@
-import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
-import { SignJWT } from 'jose';
-import { connectDB } from '../../../../lib/db';
-import User from '../../../../models/User';
+import { NextResponse } from "next/server";
+import { connectDB } from "../../../../lib/db";
+import User from "../../../../models/User";
+import bcrypt from "bcrypt";
+import { sendVerificationEmail } from "../../../../lib/mailer.js";
 
-export const runtime = "nodejs";
+// Function to generate a secure token
+function generateVerificationToken() {
+  const array = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(array);
+  return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 
-await connectDB();
-
-const JWT_SECRET = process.env.JWT_SECRET || 'thisKeyIsSupposedToBeSecret';
+// Function to generate a unique referral code
+function generateReferralCode() {
+  return Math.random().toString(36).substr(2, 8).toUpperCase(); // Generates an 8-character code
+}
 
 export async function POST(request) {
   try {
-    const { email, password, username, phonenumber } = await request.json();
+    const { email, password, username, phonenumber, referralCode } = await request.json();
+
+    console.log("Referral code:", referralCode);
 
     if (!email || !password || !username || !phonenumber) {
       return NextResponse.json({ error: "All fields are required!" }, { status: 400 });
     }
 
-    // Check if user exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return NextResponse.json({ error: "A user with this email already exists" }, { status: 403 });
+    await connectDB();
+
+    // Check if user already exists by email or username
+    const existingUserByEmail = await User.findOne({ email });
+    if (existingUserByEmail) {
+      return NextResponse.json({ error: "User with this email already exists!" }, { status: 409 });
     }
 
-    const userExistsPhone = await User.findOne({ phonenumber });
-    if (userExistsPhone) {
-      return NextResponse.json({ error: "A user with this phone number already exists" }, { status: 403 });
+    const existingUserByUsername = await User.findOne({ username });
+    if (existingUserByUsername) {
+      return NextResponse.json({ error: "User with this username already exists!" }, { status: 409 });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
+    const verificationToken = generateVerificationToken();
+    const newReferralCode = generateReferralCode();
 
-    // Create user
-    const newUser = await User.create({
+    // Initialize referral earnings and wallet balance
+    let referralEarnings = 0;
+    let walletBalance = 0;
+
+    // If a valid referral code is used, find the referring user
+    if (referralCode) {
+      console.log("Looking for referrer with code:", referralCode);
+      const referrer = await User.findOne({ referralCode: referralCode });
+
+      console.log("Referrer found:", referrer);
+
+      if (referrer) {
+        // Check if the referrer has not exceeded ₹1000 referral earnings
+        if (referrer.referralEarnings < 1000) {
+          // Add ₹50 to referrer’s earnings and update wallet balance
+          const earningsToAdd = Math.min(50, 1000 - referrer.referralEarnings); // Ensure limit is not exceeded
+          referrer.referralEarnings += earningsToAdd;
+          referrer.walletBalance += earningsToAdd;
+          await referrer.save();
+          console.log("Referrer updated:", referrer);
+        } else {
+          console.log("Referrer has exceeded the referral earnings limit.");
+        }
+      } else {
+        console.log("No referrer found with the provided referral code.");
+      }
+    }
+
+    // Create a new user
+    await User.create({
       email,
       password: hashedPassword,
       username,
-      phonenumber
+      phonenumber,
+      referralCode: newReferralCode,
+      referralEarnings,
+      walletBalance,
+      isVerified: false,
+      verificationToken,
     });
 
-    // Generate token
-    const token = await new SignJWT({ userId: newUser._id })
-      .setProtectedHeader({ alg: "HS256" })
-      .setExpirationTime("15d")
-      .sign(new TextEncoder().encode(JWT_SECRET));
+    // Send verification email
+    const verificationLink = `http://localhost:3000/api/auth/verify?token=${verificationToken}`;
+    await sendVerificationEmail(email, verificationLink);
 
-    const userToReturn = { ...newUser.toJSON(), token };
-    delete userToReturn.password;
+    return NextResponse.json({ message: "Verification email sent! Please check your inbox." }, { status: 200 });
 
-    const response = NextResponse.json(userToReturn, { status: 201 });
-
-    response.cookies.set("token", token, {
-      httpOnly: false, // Change to true if you don’t need access from frontend
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: 60 * 60 * 24 * 15,
-      path: "/",
-    });
-
-    console.log(response.cookies.get("token"));
-
-    return response;
   } catch (error) {
-    console.error('Registration error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Error during registration:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

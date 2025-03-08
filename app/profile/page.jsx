@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import { useCookies } from 'react-cookie'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import Refferallink from '../components/Refferallink'
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null)
@@ -12,9 +13,11 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [profileImage, setProfileImage] = useState(null)
-  
+
   useEffect(() => {
     const fetchUserProfile = async () => {
+      if (!cookies.token) return; // ✅ Prevents request if token is missing
+
       try {
         const response = await fetch('/api/profile', {
           headers: {
@@ -22,9 +25,10 @@ export default function ProfilePage() {
           }
         })
         if (!response.ok) throw new Error('Failed to fetch user profile')
+        
         const data = await response.json()
-        setUser(data.user)
-        setProfileImage(data.user.profileImage || null)
+        setUser(data) // ✅ Correctly sets user data
+        setProfileImage(data.profileImage || '/default-avatar.png')
       } catch (error) {
         setError(error.message)
       } finally {
@@ -32,9 +36,7 @@ export default function ProfilePage() {
       }
     }
 
-    if (cookies.token) {
-      fetchUserProfile()
-    }
+    fetchUserProfile()
   }, [cookies.token])
 
   const handleImageUpload = async (event) => {
@@ -46,6 +48,7 @@ export default function ProfilePage() {
     try {
       const response = await fetch('/api/upload-profile', {
         method: 'POST',
+        headers: { Authorization: `Bearer ${cookies.token}` }, // ✅ Auth for security
         body: formData,
       })
       if (!response.ok) throw new Error('Failed to upload profile image')
@@ -74,7 +77,7 @@ export default function ProfilePage() {
         <div className="bg-[#0d031b] rounded-lg shadow-xl p-8 space-y-6">
           <motion.h2 className="text-2xl font-semibold mb-4 tracking-wide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>Personal Details</motion.h2>
           <div className="flex items-center space-x-4">
-            <img src={profileImage || '/default-avatar.png'} alt="Profile" className="w-24 h-24 rounded-full border-2 border-gray-500" />
+            <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full border-2 border-gray-500" />
             <input type="file" onChange={handleImageUpload} className="text-sm text-gray-400" />
           </div>
           <TypingText label="Email" text={user.email} />
@@ -83,12 +86,13 @@ export default function ProfilePage() {
         </div>
         <div className="mt-10">
           <motion.h2 className="text-2xl font-semibold mb-4 tracking-wide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>Active Orders</motion.h2>
-          <AnimatedList items={user.currentOrders} />
+          <AnimatedList items={user.currentOrders || []} />
         </div>
         <div className="mt-10">
           <motion.h2 className="text-2xl font-semibold mb-4 tracking-wide" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7 }}>Order History</motion.h2>
-          <AnimatedList items={user.previousOrders} />
+          <AnimatedList items={user.previousOrders || []} />
         </div>
+        <Refferallink user={user} />
       </div>
       <Footer />
     </div>
